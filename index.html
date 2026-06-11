@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Zilla+Slab:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -1080,14 +1081,34 @@
     <div class="sidebar-footer-actions">
       <button class="sidebar-footer-btn" id="importBtn" title="导入">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
-        </svg>
-      </button>
-      <button class="sidebar-footer-btn" id="exportBtn" title="导出全部">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>
         </svg>
       </button>
+      <div style="position:relative; display:inline-flex;">
+        <button class="sidebar-footer-btn" id="exportBtn" title="导出">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
+          </svg>
+        </button>
+        <div class="dropdown-menu" id="exportDropdown">
+          <button class="dropdown-item" data-format="json">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+            JSON（全部笔记）
+          </button>
+          <button class="dropdown-item" data-format="md">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+            Markdown（全部笔记）
+          </button>
+          <button class="dropdown-item" data-format="md-current">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/></svg>
+            Markdown（当前笔记）
+          </button>
+          <button class="dropdown-item" data-format="pdf">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13h2a1 1 0 0 0 0-2H9v6"/><path d="M15 17v-6h2a1 1 0 1 1 0 2h-2"/></svg>
+            PDF（当前笔记）
+          </button>
+        </div>
+      </div>
       <button class="sidebar-footer-btn" id="themeToggle" title="切换主题">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="themeIcon">
           <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
@@ -1637,12 +1658,120 @@
     showToast('已导出为 Markdown');
   }
 
-  function exportAll() {
+  function exportAllJSON() {
     if (notes.length === 0) { showToast('没有笔记可导出'); return; }
     const data = JSON.stringify(notes, null, 2);
     const blob = new Blob([data], { type: 'application/json;charset=utf-8' });
     downloadBlob(blob, `墨迹笔记_${new Date().toISOString().slice(0,10)}.json`);
-    showToast('已导出全部笔记');
+    showToast('已导出全部笔记 (JSON)');
+  }
+
+  function exportAllMarkdown() {
+    if (notes.length === 0) { showToast('没有笔记可导出'); return; }
+    const content = notes.map(n => {
+      const title = n.title || '无标题笔记';
+      const tags = n.tags.length ? `> 标签: ${n.tags.join(', ')}\n` : '';
+      const date = `> 更新时间: ${new Date(n.updatedAt).toLocaleString('zh-CN')}\n`;
+      return `# ${title}\n\n${tags}${date}\n${n.content}`;
+    }).join('\n\n---\n\n');
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+    downloadBlob(blob, `墨迹笔记_${new Date().toISOString().slice(0,10)}.md`);
+    showToast('已导出全部笔记 (Markdown)');
+  }
+
+  function exportCurrentNotePDF() {
+    const note = notes.find(n => n.id === activeNoteId);
+    if (!note) { showToast('请先选择一篇笔记'); return; }
+    showToast('正在生成 PDF，请稍候…');
+
+    // 创建全屏遮罩
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed; inset:0; background:rgba(26,26,24,0.5); z-index:99999; display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; backdrop-filter:blur(4px);';
+
+    const container = document.createElement('div');
+    container.style.cssText = 'box-sizing:border-box; width:210mm; min-height:297mm; max-width:210mm; background:#fff; color:#1a1a18; padding:25mm 20mm; font-family:"Noto Serif SC",serif; margin:20px auto; box-shadow:0 8px 32px rgba(0,0,0,0.15);';
+
+    const title = note.title || '无标题笔记';
+    const metaParts = [];
+    if (note.tags.length) metaParts.push('标签: ' + note.tags.join(', '));
+    metaParts.push('更新: ' + new Date(note.updatedAt).toLocaleString('zh-CN'));
+
+    let rendered = marked.parse(note.content || '<em style="color:#b5b2aa;">空白笔记</em>', { breaks: true, gfm: true });
+    // 去掉链接的 href，防止超长 URL 撑开布局
+    rendered = rendered.replace(/<a\b[^>]*href="[^"]*"[^>]*>([^<]*)<\/a>/gi, '<span style="color:#b8462e;text-decoration:underline;word-break:break-all;">$1</span>');
+
+    container.innerHTML = '<h1 style="font-size:24pt;color:#1a1a18;margin-bottom:8px;padding-bottom:12px;border-bottom:2px solid #b8462e;font-family:\'Noto Serif SC\',serif;word-break:break-all;overflow-wrap:break-word;">' + escapeHtml(title) + '</h1>' +
+      '<div style="color:#8a8780;font-size:9pt;margin-bottom:24px;line-height:1.6;word-break:break-all;overflow-wrap:break-word;">' + escapeHtml(metaParts.join(' · ')) + '</div>' +
+      '<div style="font-size:11pt;line-height:1.9;color:#333;word-break:break-word;overflow-wrap:break-word;">' + rendered + '</div>';
+
+    overlay.appendChild(container);
+    document.body.appendChild(overlay);
+
+    // 用 JS 直接给所有子元素设置内联换行样式（html2canvas 对动态 style 标签支持不佳）
+    container.querySelectorAll('*').forEach(function(el) {
+      el.style.wordBreak = 'break-word';
+      el.style.overflowWrap = 'break-word';
+      el.style.maxWidth = '100%';
+    });
+    container.querySelectorAll('pre').forEach(function(pre) {
+      pre.style.whiteSpace = 'pre-wrap';
+      pre.style.wordBreak = 'break-all';
+      pre.style.overflowX = 'hidden';
+    });
+    container.querySelectorAll('code').forEach(function(code) {
+      code.style.wordBreak = 'break-all';
+    });
+    container.querySelectorAll('table').forEach(function(table) {
+      table.style.tableLayout = 'fixed';
+      table.style.width = '100%';
+    });
+    container.querySelectorAll('td, th').forEach(function(cell) {
+      cell.style.wordBreak = 'break-all';
+    });
+    container.querySelectorAll('img').forEach(function(img) {
+      img.style.maxWidth = '100%';
+    });
+
+    const filename = title.replace(/[\\/:*?"<>|]/g, '_') + '.pdf';
+
+    const opt = {
+      margin: [10, 10, 10, 10],
+      filename: filename,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 794 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    setTimeout(function() {
+      html2pdf().set(opt).from(container).save().then(function() {
+        overlay.remove();
+        showToast('PDF 导出完成');
+      }).catch(function(err) {
+        console.error('PDF export error:', err);
+        overlay.remove();
+        showToast('PDF 导出失败，请重试');
+      });
+    }, 400);
+
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        overlay.remove();
+        showToast('PDF 导出已取消');
+      }
+    });
+  }
+
+  function exportCurrentNoteMd() {
+    const note = notes.find(n => n.id === activeNoteId);
+    if (!note) { showToast('请先选择一篇笔记'); return; }
+    exportNoteAsMd(note.id);
+  }
+
+  function handleExport(format) {
+    if (format === 'json') exportAllJSON();
+    else if (format === 'md') exportAllMarkdown();
+    else if (format === 'md-current') exportCurrentNoteMd();
+    else if (format === 'pdf') exportCurrentNotePDF();
   }
 
   function importNotes(files) {
@@ -1902,7 +2031,21 @@
     if (e.target.files.length) importNotes(e.target.files);
     e.target.value = '';
   });
-  exportBtn.addEventListener('click', exportAll);
+  const exportDropdown = $('#exportDropdown');
+
+  exportBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    exportDropdown.classList.toggle('show');
+  });
+
+  document.addEventListener('click', () => exportDropdown.classList.remove('show'));
+
+  exportDropdown.addEventListener('click', (e) => {
+    const item = e.target.closest('.dropdown-item');
+    if (!item) return;
+    handleExport(item.dataset.format);
+    exportDropdown.classList.remove('show');
+  });
 
   // Delete modal
   $('#cancelDelete').addEventListener('click', () => {
