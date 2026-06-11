@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>墨迹 · 本地笔记</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Zilla+Slab:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg-primary: #faf8f4;
+    --bg-secondary: #f3f0e8;
+    --bg-sidebar: #eeeae0;
+    --bg-card: #ffffff;
+    --bg-hover: #ece8dc;
+    --bg-active: #e4dfcf;
+    --bg-input: #f7f5f0;
+    --text-primary: #1a1a18;
+    --text-secondary: #5c5a52;
+    --text-tertiary: #8a8780;
+    --text-placeholder: #b5b2aa;
+    --accent: #b8462e;
+    --accent-soft: #d4785e;
+    --accent-bg: rgba(184, 70, 46, 0.08);
+    --border: #ddd8cc;
+    --border-light: #eae6da;
+    --shadow-sm: 0 1px 3px rgba(26,26,24,0.04);
+    --shadow-md: 0 4px 12px rgba(26,26,24,0.06);
+    --shadow-lg: 0 8px 24px rgba(26,26,24,0.08);
+    --tag-green: #4a7c59;
+    --tag-green-bg: rgba(74,124,89,0.1);
+    --tag-blue: #3d6b8e;
+    --tag-blue-bg: rgba(61,107,142,0.1);
+    --tag-amber: #8a6d3b;
+    --tag-amber-bg: rgba(138,109,59,0.1);
+    --tag-plum: #7a4e6d;
+    --tag-plum-bg: rgba(122,78,109,0.1);
+    --tag-slate: #5a5e6b;
+    --tag-slate-bg: rgba(90,94,107,0.1);
+    --radius: 6px;
+    --transition: 180ms ease-out;
+  }
+
+  [data-theme="dark"] {
+    --bg-primary: #1a1917;
+    --bg-secondary: #222120;
+    --bg-sidebar: #1e1d1b;
+    --bg-card: #282725;
+    --bg-hover: #2e2d2a;
+    --bg-active: #383632;
+    --bg-input: #252422;
+    --text-primary: #e8e4da;
+    --text-secondary: #a39f94;
+    --text-tertiary: #706d64;
+    --text-placeholder: #504e46;
+    --accent: #d4785e;
+    --accent-soft: #b8462e;
+    --accent-bg: rgba(212,120,94,0.12);
+    --border: #333230;
+    --border-light: #2a2927;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+    --tag-green: #6ba87d;
+    --tag-green-bg: rgba(107,168,125,0.12);
+    --tag-blue: #6a9dc0;
+    --tag-blue-bg: rgba(106,157,192,0.12);
+    --tag-amber: #c0a060;
+    --tag-amber-bg: rgba(192,160,96,0.12);
+    --tag-plum: #b07ea0;
+    --tag-plum-bg: rgba(176,126,160,0.12);
+    --tag-slate: #8a8e9b;
+    --tag-slate-bg: rgba(138,142,155,0.12);
+  }
+
+  html { font-size: 16px; }
+  body {
+    font-family: 'DM Sans', -apple-system, 'PingFang SC', sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  /* ═══════════ SIDEBAR ═══════════ */
+  .sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    transition: transform var(--transition), background var(--transition);
+    z-index: 20;
+  }
+
+  .sidebar-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .brand-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .brand-icon svg { width: 28px; height: 28px; }
+
+  .brand-name {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+  }
+
+  .brand-sub {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-left: auto;
+  }
+
+  .search-box {
+    position: relative;
+  }
+
+  .search-box svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 16px;
+    height: 16px;
+    color: var(--text-tertiary);
+    pointer-events: none;
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+
+  .search-box input::placeholder { color: var(--text-placeholder); }
+  .search-box input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-bg);
+  }
+
+  .sidebar-actions {
+    padding: 12px 16px;
+    display: flex;
+    gap: 6px;
+  }
+
+  .btn-new-note {
+    flex: 1;
+    padding: 9px 14px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.82rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    transition: opacity var(--transition), transform 80ms ease;
+  }
+
+  .btn-new-note:hover { opacity: 0.9; }
+  .btn-new-note:active { transform: scale(0.97); }
+  .btn-new-note svg { width: 15px; height: 15px; }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: background var(--transition), color var(--transition);
+    position: relative;
+  }
+
+  .btn-icon:hover { background: var(--bg-active); color: var(--text-primary); }
+  .btn-icon svg { width: 16px; height: 16px; }
+
+  .tag-filter-bar {
+    padding: 0 16px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .tag-filter {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all var(--transition);
+  }
+
+  .tag-filter:hover { background: var(--bg-hover); }
+  .tag-filter.active {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .note-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 12px 16px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .note-list::-webkit-scrollbar { width: 4px; }
+  .note-list::-webkit-scrollbar-track { background: transparent; }
+  .note-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .note-item {
+    padding: 12px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    margin-bottom: 2px;
+    transition: background var(--transition);
+    border: 1px solid transparent;
+  }
+
+  .note-item:hover { background: var(--bg-hover); }
+  .note-item.active {
+    background: var(--bg-card);
+    border-color: var(--border);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .note-item-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .note-item-preview {
+    font-size: 0.76rem;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 6px;
+  }
+
+  .note-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.68rem;
+    color: var(--text-tertiary);
+  }
+
+  .note-item-tags {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .note-item-tag {
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .note-list-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-tertiary);
+  }
+
+  .note-list-empty svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
+    opacity: 0.4;
+  }
+
+  .note-list-empty p {
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+
+  .sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+  }
+
+  .sidebar-footer-actions {
+    display: flex;
+    gap: 4px;
+  }
+
+  .sidebar-footer-btn {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius);
+    border: none;
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  .sidebar-footer-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .sidebar-footer-btn svg { width: 15px; height: 15px; }
+
+  /* ═══════════ MAIN ═══════════ */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-width: 0;
+  }
+
+  .editor-toolbar {
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-primary);
+    flex-shrink: 0;
+  }
+
+  .toolbar-group {
+    display: flex;
+    gap: 2px;
+    padding: 0 4px;
+    border-right: 1px solid var(--border-light);
+  }
+
+  .toolbar-group:last-child { border-right: none; }
+
+  .toolbar-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 120ms ease;
+    position: relative;
+  }
+
+  .toolbar-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .toolbar-btn.active {
+    background: var(--accent-bg);
+    color: var(--accent);
+  }
+
+  .toolbar-btn svg { width: 16px; height: 16px; }
+
+  .toolbar-btn .tooltip {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 3px 8px;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    font-size: 0.68rem;
+    border-radius: 4px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+    z-index: 100;
+  }
+
+  .toolbar-btn:hover .tooltip { opacity: 1; }
+
+  .view-toggle {
+    margin-left: auto;
+    display: flex;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .view-toggle-btn {
+    padding: 5px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    font-size: 0.76rem;
+    font-family: inherit;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .view-toggle-btn.active {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .editor-area {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .editor-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .note-title-input {
+    padding: 24px 40px 8px;
+    border: none;
+    background: transparent;
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    outline: none;
+    width: 100%;
+  }
+
+  .note-title-input::placeholder { color: var(--text-placeholder); }
+
+  .note-meta-bar {
+    padding: 4px 40px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.76rem;
+    color: var(--text-tertiary);
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+  }
+
+  .meta-tag-list {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .meta-tag {
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .meta-tag .remove-tag {
+    width: 12px;
+    height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 120ms;
+  }
+
+  .meta-tag .remove-tag:hover { opacity: 1; }
+
+  .add-tag-btn {
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    border: 1px dashed var(--border);
+    background: transparent;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all var(--transition);
+  }
+
+  .add-tag-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-bg);
+  }
+
+  .tag-input {
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    border: 1px solid var(--accent);
+    background: var(--bg-input);
+    color: var(--text-primary);
+    outline: none;
+    font-family: inherit;
+    width: 80px;
+  }
+
+  .editor-content {
+    flex: 1;
+    padding: 16px 40px 40px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .editor-content::-webkit-scrollbar { width: 4px; }
+  .editor-content::-webkit-scrollbar-track { background: transparent; }
+  .editor-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .editor-textarea {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    font-family: 'DM Sans', -apple-system, 'PingFang SC', sans-serif;
+    font-size: 0.92rem;
+    line-height: 1.8;
+    resize: none;
+    outline: none;
+    tab-size: 2;
+  }
+
+  .editor-textarea::placeholder { color: var(--text-placeholder); }
+
+  .preview-pane {
+    flex: 1;
+    padding: 24px 40px 40px;
+    overflow-y: auto;
+    border-left: 1px solid var(--border-light);
+    background: var(--bg-primary);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .preview-pane::-webkit-scrollbar { width: 4px; }
+  .preview-pane::-webkit-scrollbar-track { background: transparent; }
+  .preview-pane::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Markdown styles */
+  .markdown-body {
+    font-family: 'DM Sans', -apple-system, 'PingFang SC', sans-serif;
+    font-size: 0.92rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+  }
+
+  .markdown-body h1 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  .markdown-body h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 28px 0 12px;
+  }
+
+  .markdown-body h3 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 24px 0 8px;
+  }
+
+  .markdown-body p { margin: 0 0 14px; }
+
+  .markdown-body a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-color: var(--accent-soft);
+    text-underline-offset: 2px;
+  }
+
+  .markdown-body strong { font-weight: 600; }
+  .markdown-body em { font-style: italic; }
+
+  .markdown-body code {
+    font-family: 'Zilla Slab', 'SF Mono', monospace;
+    font-size: 0.85em;
+    padding: 2px 6px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    color: var(--accent);
+  }
+
+  .markdown-body pre {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin: 0 0 16px;
+    overflow-x: auto;
+  }
+
+  .markdown-body pre code {
+    background: none;
+    padding: 0;
+    color: var(--text-primary);
+    font-size: 0.84rem;
+    line-height: 1.6;
+  }
+
+  .markdown-body blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 4px 16px;
+    margin: 0 0 16px;
+    color: var(--text-secondary);
+    font-style: italic;
+    background: var(--accent-bg);
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+
+  .markdown-body blockquote p:last-child { margin-bottom: 0; }
+
+  .markdown-body ul, .markdown-body ol {
+    padding-left: 24px;
+    margin: 0 0 14px;
+  }
+
+  .markdown-body li { margin-bottom: 4px; }
+
+  .markdown-body hr {
+    border: none;
+    height: 1px;
+    background: var(--border);
+    margin: 24px 0;
+  }
+
+  .markdown-body img {
+    max-width: 100%;
+    border-radius: var(--radius);
+  }
+
+  .markdown-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0 0 16px;
+  }
+
+  .markdown-body th, .markdown-body td {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    text-align: left;
+    font-size: 0.85rem;
+  }
+
+  .markdown-body th {
+    background: var(--bg-secondary);
+    font-weight: 600;
+  }
+
+  .markdown-body input[type="checkbox"] {
+    margin-right: 6px;
+    accent-color: var(--accent);
+  }
+
+  /* ═══════════ EMPTY STATE ═══════════ */
+  .empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    text-align: center;
+  }
+
+  .empty-state-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+  }
+
+  .empty-state h2 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.3rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .empty-state p {
+    font-size: 0.88rem;
+    color: var(--text-tertiary);
+    line-height: 1.6;
+    max-width: 320px;
+  }
+
+  .empty-state kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 0.76rem;
+    font-family: 'Zilla Slab', monospace;
+    margin: 0 2px;
+  }
+
+  /* ═══════════ MODAL ═══════════ */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,24,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .modal {
+    background: var(--bg-card);
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+    padding: 24px;
+    width: 400px;
+    max-width: 90vw;
+    transform: translateY(10px);
+    transition: transform 200ms ease;
+  }
+
+  .modal-overlay.show .modal {
+    transform: translateY(0);
+  }
+
+  .modal h3 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 1.05rem;
+    margin-bottom: 16px;
+  }
+
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .modal-btn {
+    padding: 8px 18px;
+    border-radius: var(--radius);
+    font-size: 0.82rem;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition);
+  }
+
+  .modal-btn-secondary {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  .modal-btn-secondary:hover { background: var(--bg-hover); }
+
+  .modal-btn-primary {
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: #fff;
+  }
+
+  .modal-btn-primary:hover { opacity: 0.9; }
+
+  .modal-btn-danger {
+    background: #c53030;
+    border: 1px solid #c53030;
+    color: #fff;
+  }
+
+  .modal-btn-danger:hover { opacity: 0.9; }
+
+  /* ═══════════ TOAST ═══════════ */
+  .toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .toast {
+    padding: 10px 18px;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    border-radius: var(--radius);
+    font-size: 0.82rem;
+    box-shadow: var(--shadow-md);
+    animation: toastIn 250ms ease, toastOut 250ms ease 2.5s forwards;
+  }
+
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes toastOut {
+    from { opacity: 1; }
+    to { opacity: 0; transform: translateY(-4px); }
+  }
+
+  /* ═══════════ CONTEXT MENU ═══════════ */
+  .context-menu {
+    position: fixed;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 4px;
+    min-width: 160px;
+    z-index: 500;
+    display: none;
+  }
+
+  .context-menu.show { display: block; }
+
+  .context-menu-item {
+    padding: 7px 12px;
+    font-size: 0.82rem;
+    font-family: inherit;
+    color: var(--text-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 100ms;
+  }
+
+  .context-menu-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .context-menu-item.danger { color: #c53030; }
+  .context-menu-item.danger:hover { background: rgba(197,48,48,0.08); }
+
+  .context-menu-item svg { width: 14px; height: 14px; }
+
+  .context-menu-sep {
+    height: 1px;
+    background: var(--border-light);
+    margin: 4px 0;
+  }
+
+  /* ═══════════ DROPDOWN ═══════════ */
+  .dropdown-menu {
+    position: absolute;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 4px;
+    min-width: 180px;
+    z-index: 500;
+    display: none;
+    bottom: calc(100% + 6px);
+  }
+
+  .dropdown-menu.show { display: block; }
+
+  .dropdown-item {
+    padding: 7px 12px;
+    font-size: 0.82rem;
+    font-family: inherit;
+    color: var(--text-secondary);
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 100ms;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+
+  .dropdown-item:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+
+  .dropdown-item svg { width: 14px; height: 14px; }
+
+  /* ═══════════ RESPONSIVE ═══════════ */
+  .mobile-menu-btn {
+    display: none;
+    width: 36px;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: var(--radius);
+  }
+
+  .mobile-menu-btn:hover { background: var(--bg-hover); }
+  .mobile-menu-btn svg { width: 20px; height: 20px; }
+
+  @media (max-width: 768px) {
+    .sidebar {
+      position: fixed;
+      left: 0;
+      top: 0;
+      transform: translateX(-100%);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .sidebar.open { transform: translateX(0); }
+
+    .mobile-menu-btn { display: flex; }
+
+    .note-title-input { padding: 20px 20px 8px; font-size: 1.3rem; }
+    .note-meta-bar { padding: 4px 20px 12px; }
+    .editor-content { padding: 12px 20px 40px; }
+    .preview-pane { padding: 20px 20px 40px; }
+  }
+
+  /* ═══════════ TAG COLORS ═══════════ */
+  .tag-green { background: var(--tag-green-bg); color: var(--tag-green); }
+  .tag-blue { background: var(--tag-blue-bg); color: var(--tag-blue); }
+  .tag-amber { background: var(--tag-amber-bg); color: var(--tag-amber); }
+  .tag-plum { background: var(--tag-plum-bg); color: var(--tag-plum); }
+  .tag-slate { background: var(--tag-slate-bg); color: var(--tag-slate); }
+
+  /* ═══════════ ANIMATIONS ═══════════ */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .word-count {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    padding: 4px 40px 0;
+    text-align: right;
+  }
+
+  /* Hidden file input */
+  #importInput { display: none; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+          <path d="m15 5 4 4"/>
+        </svg>
+      </div>
+      <span class="brand-name">墨迹</span>
+      <span class="brand-sub">Local Notes</span>
+    </div>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input type="text" id="searchInput" placeholder="搜索笔记…" autocomplete="off">
+    </div>
+  </div>
+
+  <div class="sidebar-actions">
+    <button class="btn-new-note" id="newNoteBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14"/><path d="M5 12h14"/>
+      </svg>
+      新建笔记
+    </button>
+  </div>
+
+  <div class="tag-filter-bar" id="tagFilterBar"></div>
+
+  <div class="note-list" id="noteList"></div>
+
+  <div class="sidebar-footer">
+    <span id="noteCount">0 篇笔记</span>
+    <div class="sidebar-footer-actions">
+      <button class="sidebar-footer-btn" id="importBtn" title="导入">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>
+        </svg>
+      </button>
+      <button class="sidebar-footer-btn" id="exportBtn" title="导出全部">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>
+        </svg>
+      </button>
+      <button class="sidebar-footer-btn" id="themeToggle" title="切换主题">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="themeIcon">
+          <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</aside>
+
+<input type="file" id="importInput" accept=".json,.md,.txt" multiple>
+
+<!-- ═══════════ MAIN ═══════════ -->
+<main class="main" id="mainArea">
+  <!-- Empty state (no note selected) -->
+  <div class="empty-state" id="emptyState">
+    <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+      <path d="m15 5 4 4"/>
+    </svg>
+    <h2>选择或创建一篇笔记</h2>
+    <p>点击左侧笔记列表中的笔记开始编辑，或按 <kbd>Ctrl</kbd> + <kbd>N</kbd> 新建笔记</p>
+  </div>
+
+  <!-- Editor (hidden until note selected) -->
+  <div id="editorContainer" style="display:none; flex:1; flex-direction:column;">
+    <div class="editor-toolbar">
+      <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="18" y2="18"/>
+        </svg>
+      </button>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" data-action="bold" title="粗体">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 12h9a4 4 0 0 1 0 8H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h7a4 4 0 0 1 0 8"/>
+          </svg>
+          <span class="tooltip">粗体 Ctrl+B</span>
+        </button>
+        <button class="toolbar-btn" data-action="italic" title="斜体">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" x2="10" y1="4" y2="4"/><line x1="14" x2="5" y1="20" y2="20"/><line x1="15" x2="9" y1="4" y2="20"/>
+          </svg>
+          <span class="tooltip">斜体 Ctrl+I</span>
+        </button>
+        <button class="toolbar-btn" data-action="strikethrough" title="删除线">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><line x1="4" x2="20" y1="12" y2="12"/>
+          </svg>
+          <span class="tooltip">删除线</span>
+        </button>
+      </div>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" data-action="heading" title="标题">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 12h12"/><path d="M6 4v16"/><path d="M18 4v16"/>
+          </svg>
+          <span class="tooltip">标题</span>
+        </button>
+        <button class="toolbar-btn" data-action="quote" title="引用">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V21z"/>
+            <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3z"/>
+          </svg>
+          <span class="tooltip">引用</span>
+        </button>
+        <button class="toolbar-btn" data-action="code" title="代码">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+          </svg>
+          <span class="tooltip">代码块</span>
+        </button>
+      </div>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" data-action="ul" title="无序列表">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/>
+            <line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/>
+          </svg>
+          <span class="tooltip">无序列表</span>
+        </button>
+        <button class="toolbar-btn" data-action="ol" title="有序列表">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="10" x2="21" y1="6" y2="6"/><line x1="10" x2="21" y1="12" y2="12"/><line x1="10" x2="21" y1="18" y2="18"/>
+            <path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/>
+          </svg>
+          <span class="tooltip">有序列表</span>
+        </button>
+        <button class="toolbar-btn" data-action="checklist" title="任务列表">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 7 3 3 3-3"/><path d="M12 7h9"/><path d="m3 17 3 3 3-3"/><path d="M12 17h9"/>
+          </svg>
+          <span class="tooltip">任务列表</span>
+        </button>
+      </div>
+      <div class="toolbar-group">
+        <button class="toolbar-btn" data-action="link" title="链接">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+          </svg>
+          <span class="tooltip">链接</span>
+        </button>
+        <button class="toolbar-btn" data-action="hr" title="分隔线">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="3" x2="21" y1="12" y2="12"/>
+          </svg>
+          <span class="tooltip">分隔线</span>
+        </button>
+      </div>
+
+      <div class="view-toggle">
+        <button class="view-toggle-btn active" data-view="edit">编辑</button>
+        <button class="view-toggle-btn" data-view="split">分屏</button>
+        <button class="view-toggle-btn" data-view="preview">预览</button>
+      </div>
+    </div>
+
+    <div class="editor-area" id="editorArea">
+      <div class="editor-pane" id="editorPane">
+        <input type="text" class="note-title-input" id="noteTitleInput" placeholder="无标题笔记">
+        <div class="note-meta-bar">
+          <div class="meta-tag-list" id="metaTagList"></div>
+          <button class="add-tag-btn" id="addTagBtn">+ 标签</button>
+        </div>
+        <div class="word-count" id="wordCount"></div>
+        <div class="editor-content">
+          <textarea class="editor-textarea" id="editorTextarea" placeholder="开始书写…支持 Markdown 语法"></textarea>
+        </div>
+      </div>
+      <div class="preview-pane" id="previewPane" style="display:none;">
+        <div class="markdown-body" id="previewContent"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ═══════════ CONTEXT MENU ═══════════ -->
+<div class="context-menu" id="contextMenu">
+  <div class="context-menu-item" data-action="duplicate">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+    </svg>
+    复制笔记
+  </div>
+  <div class="context-menu-item" data-action="pin">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+    </svg>
+    <span id="pinText">置顶</span>
+  </div>
+  <div class="context-menu-sep"></div>
+  <div class="context-menu-item" data-action="exportOne">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>
+    </svg>
+    导出为 Markdown
+  </div>
+  <div class="context-menu-sep"></div>
+  <div class="context-menu-item danger" data-action="delete">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+    </svg>
+    删除
+  </div>
+</div>
+
+<!-- ═══════════ MODAL ═══════════ -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <h3>确认删除</h3>
+    <p style="color:var(--text-secondary); font-size:0.88rem; line-height:1.6;">此操作无法撤销。确定要删除这篇笔记吗？</p>
+    <div class="modal-actions">
+      <button class="modal-btn modal-btn-secondary" id="cancelDelete">取消</button>
+      <button class="modal-btn modal-btn-danger" id="confirmDelete">删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ TOAST ═══════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ═══════════ DATA LAYER ═══════════
+  const STORAGE_KEY = 'moji_notes';
+  const THEME_KEY = 'moji_theme';
+
+  const TAG_COLORS = ['green', 'blue', 'amber', 'plum', 'slate'];
+  const tagColorMap = {};
+
+  function getTagColor(tag) {
+    if (!tagColorMap[tag]) {
+      const used = Object.values(tagColorMap);
+      const available = TAG_COLORS.filter(c => !used.includes(c));
+      tagColorMap[tag] = available.length > 0 ? available[0] : TAG_COLORS[Object.keys(tagColorMap).length % TAG_COLORS.length];
+    }
+    return tagColorMap[tag];
+  }
+
+  function loadNotes() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  }
+
+  function saveNotes(notes) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+  }
+
+  function createNote() {
+    return {
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      title: '',
+      content: '',
+      tags: [],
+      pinned: false,
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    };
+  }
+
+  let notes = loadNotes();
+  let activeNoteId = null;
+  let activeTagFilter = null;
+  let searchQuery = '';
+  let currentView = 'edit';
+  let contextNoteId = null;
+  let deleteTargetId = null;
+
+  // ═══════════ DOM REFS ═══════════
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => document.querySelectorAll(s);
+
+  const noteList = $('#noteList');
+  const searchInput = $('#searchInput');
+  const newNoteBtn = $('#newNoteBtn');
+  const tagFilterBar = $('#tagFilterBar');
+  const noteCount = $('#noteCount');
+  const emptyState = $('#emptyState');
+  const editorContainer = $('#editorContainer');
+  const noteTitleInput = $('#noteTitleInput');
+  const metaTagList = $('#metaTagList');
+  const addTagBtn = $('#addTagBtn');
+  const editorTextarea = $('#editorTextarea');
+  const previewPane = $('#previewPane');
+  const previewContent = $('#previewContent');
+  const editorPane = $('#editorPane');
+  const wordCount = $('#wordCount');
+  const contextMenu = $('#contextMenu');
+  const deleteModal = $('#deleteModal');
+  const themeToggle = $('#themeToggle');
+  const importBtn = $('#importBtn');
+  const exportBtn = $('#exportBtn');
+  const importInput = $('#importInput');
+  const mobileMenuBtn = $('#mobileMenuBtn');
+  const sidebar = $('#sidebar');
+
+  // ═══════════ THEME ═══════════
+  function initTheme() {
+    const saved = localStorage.getItem(THEME_KEY);
+    if (saved === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+    updateThemeIcon();
+  }
+
+  function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    localStorage.setItem(THEME_KEY, isDark ? 'light' : 'dark');
+    updateThemeIcon();
+  }
+
+  function updateThemeIcon() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    $('#themeIcon').innerHTML = isDark
+      ? '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'
+      : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>';
+  }
+
+  // ═══════════ RENDER ═══════════
+  function getFilteredNotes() {
+    let filtered = [...notes];
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(n =>
+        (n.title || '').toLowerCase().includes(q) ||
+        (n.content || '').toLowerCase().includes(q) ||
+        n.tags.some(t => t.toLowerCase().includes(q))
+      );
+    }
+
+    if (activeTagFilter) {
+      filtered = filtered.filter(n => n.tags.includes(activeTagFilter));
+    }
+
+    filtered.sort((a, b) => {
+      if (a.pinned !== b.pinned) return b.pinned ? 1 : -1;
+      return b.updatedAt - a.updatedAt;
+    });
+
+    return filtered;
+  }
+
+  function getAllTags() {
+    const tagSet = new Set();
+    notes.forEach(n => n.tags.forEach(t => tagSet.add(t)));
+    return [...tagSet].sort();
+  }
+
+  function formatDate(ts) {
+    const d = new Date(ts);
+    const now = new Date();
+    const diffMs = now - d;
+    const diffMin = Math.floor(diffMs / 60000);
+    const diffHr = Math.floor(diffMs / 3600000);
+    const diffDay = Math.floor(diffMs / 86400000);
+
+    if (diffMin < 1) return '刚刚';
+    if (diffMin < 60) return `${diffMin} 分钟前`;
+    if (diffHr < 24) return `${diffHr} 小时前`;
+    if (diffDay < 7) return `${diffDay} 天前`;
+
+    return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function getPreviewText(content) {
+    if (!content) return '空白笔记';
+    return content
+      .replace(/^#{1,6}\s/gm, '')
+      .replace(/[*_~`>|]/g, '')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/\n+/g, ' ')
+      .trim()
+      .slice(0, 100);
+  }
+
+  function renderTagFilterBar() {
+    const tags = getAllTags();
+    tagFilterBar.innerHTML = tags.map(t =>
+      `<button class="tag-filter tag-${getTagColor(t)} ${activeTagFilter === t ? 'active' : ''}" data-tag="${t}">${t}</button>`
+    ).join('');
+
+    tagFilterBar.style.display = tags.length > 0 ? 'flex' : 'none';
+  }
+
+  function renderNoteList() {
+    const filtered = getFilteredNotes();
+
+    if (filtered.length === 0) {
+      noteList.innerHTML = `
+        <div class="note-list-empty">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          <p>${searchQuery || activeTagFilter ? '没有找到匹配的笔记' : '还没有笔记<br>点击上方按钮创建第一篇'}</p>
+        </div>
+      `;
+    } else {
+      noteList.innerHTML = filtered.map(n => `
+        <div class="note-item ${n.id === activeNoteId ? 'active' : ''}" data-id="${n.id}">
+          <div class="note-item-title">${n.pinned ? '📌 ' : ''}${escapeHtml(n.title || '无标题笔记')}</div>
+          <div class="note-item-preview">${escapeHtml(getPreviewText(n.content))}</div>
+          <div class="note-item-meta">
+            <span>${formatDate(n.updatedAt)}</span>
+            <div class="note-item-tags">
+              ${n.tags.slice(0, 2).map(t => `<span class="note-item-tag tag-${getTagColor(t)}">${escapeHtml(t)}</span>`).join('')}
+              ${n.tags.length > 2 ? `<span class="note-item-tag" style="color:var(--text-tertiary)">+${n.tags.length - 2}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    noteCount.textContent = `${notes.length} 篇笔记`;
+    renderTagFilterBar();
+  }
+
+  function renderEditor() {
+    const note = notes.find(n => n.id === activeNoteId);
+
+    if (!note) {
+      emptyState.style.display = 'flex';
+      editorContainer.style.display = 'none';
+      return;
+    }
+
+    emptyState.style.display = 'none';
+    editorContainer.style.display = 'flex';
+
+    noteTitleInput.value = note.title;
+    editorTextarea.value = note.content;
+    updateWordCount();
+    renderMetaTags();
+    updatePreview();
+  }
+
+  function renderMetaTags() {
+    const note = notes.find(n => n.id === activeNoteId);
+    if (!note) return;
+
+    metaTagList.innerHTML = note.tags.map(t =>
+      `<span class="meta-tag tag-${getTagColor(t)}">
+        ${escapeHtml(t)}
+        <span class="remove-tag" data-tag="${escapeHtml(t)}">×</span>
+      </span>`
+    ).join('');
+  }
+
+  function updatePreview() {
+    const note = notes.find(n => n.id === activeNoteId);
+    if (!note) return;
+
+    try {
+      previewContent.innerHTML = marked.parse(note.content || '', {
+        breaks: true,
+        gfm: true
+      });
+    } catch {
+      previewContent.innerHTML = '<p style="color:var(--text-tertiary)">预览渲染失败</p>';
+    }
+  }
+
+  function updateWordCount() {
+    const text = editorTextarea.value;
+    const chars = text.length;
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    wordCount.textContent = `${chars} 字符 · ${words} 词`;
+  }
+
+  function setView(view) {
+    currentView = view;
+    $$('.view-toggle-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+
+    if (view === 'edit') {
+      editorPane.style.display = 'flex';
+      previewPane.style.display = 'none';
+    } else if (view === 'preview') {
+      editorPane.style.display = 'none';
+      previewPane.style.display = 'block';
+    } else {
+      editorPane.style.display = 'flex';
+      previewPane.style.display = 'block';
+    }
+  }
+
+  // ═══════════ ACTIONS ═══════════
+  function selectNote(id) {
+    activeNoteId = id;
+    renderNoteList();
+    renderEditor();
+    // Close sidebar on mobile
+    if (window.innerWidth <= 768) sidebar.classList.remove('open');
+  }
+
+  function createNewNote() {
+    const note = createNote();
+    notes.unshift(note);
+    saveNotes(notes);
+    selectNote(note.id);
+    noteTitleInput.focus();
+    showToast('新建笔记成功');
+  }
+
+  function updateActiveNote(field, value) {
+    const note = notes.find(n => n.id === activeNoteId);
+    if (!note) return;
+    note[field] = value;
+    note.updatedAt = Date.now();
+    saveNotes(notes);
+    renderNoteList();
+  }
+
+  function duplicateNote(id) {
+    const src = notes.find(n => n.id === id);
+    if (!src) return;
+    const dup = createNote();
+    dup.title = src.title + ' (副本)';
+    dup.content = src.content;
+    dup.tags = [...src.tags];
+    notes.unshift(dup);
+    saveNotes(notes);
+    selectNote(dup.id);
+    showToast('已复制笔记');
+  }
+
+  function togglePin(id) {
+    const note = notes.find(n => n.id === id);
+    if (!note) return;
+    note.pinned = !note.pinned;
+    saveNotes(notes);
+    renderNoteList();
+    showToast(note.pinned ? '已置顶' : '已取消置顶');
+  }
+
+  function requestDelete(id) {
+    deleteTargetId = id;
+    deleteModal.classList.add('show');
+  }
+
+  function confirmDeleteAction() {
+    if (!deleteTargetId) return;
+    notes = notes.filter(n => n.id !== deleteTargetId);
+    saveNotes(notes);
+    if (activeNoteId === deleteTargetId) {
+      activeNoteId = notes.length > 0 ? notes[0].id : null;
+    }
+    deleteTargetId = null;
+    deleteModal.classList.remove('show');
+    renderNoteList();
+    renderEditor();
+    showToast('笔记已删除');
+  }
+
+  function addTagToNote(tag) {
+    const note = notes.find(n => n.id === activeNoteId);
+    if (!note) return;
+    const t = tag.trim();
+    if (!t || note.tags.includes(t)) return;
+    note.tags.push(t);
+    note.updatedAt = Date.now();
+    saveNotes(notes);
+    renderMetaTags();
+    renderNoteList();
+  }
+
+  function removeTagFromNote(tag) {
+    const note = notes.find(n => n.id === activeNoteId);
+    if (!note) return;
+    note.tags = note.tags.filter(t => t !== tag);
+    note.updatedAt = Date.now();
+    saveNotes(notes);
+    renderMetaTags();
+    renderNoteList();
+  }
+
+  function exportNoteAsMd(id) {
+    const note = notes.find(n => n.id === id);
+    if (!note) return;
+    const filename = (note.title || '无标题笔记').replace(/[\\/:*?"<>|]/g, '_') + '.md';
+    const frontmatter = `---\ntitle: ${note.title || '无标题笔记'}\ntags: [${note.tags.join(', ')}]\ncreated: ${new Date(note.createdAt).toISOString()}\nupdated: ${new Date(note.updatedAt).toISOString()}\n---\n\n`;
+    const blob = new Blob([frontmatter + note.content], { type: 'text/markdown;charset=utf-8' });
+    downloadBlob(blob, filename);
+    showToast('已导出为 Markdown');
+  }
+
+  function exportAll() {
+    if (notes.length === 0) { showToast('没有笔记可导出'); return; }
+    const data = JSON.stringify(notes, null, 2);
+    const blob = new Blob([data], { type: 'application/json;charset=utf-8' });
+    downloadBlob(blob, `墨迹笔记_${new Date().toISOString().slice(0,10)}.json`);
+    showToast('已导出全部笔记');
+  }
+
+  function importNotes(files) {
+    let imported = 0;
+    const readers = [];
+
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      readers.push(new Promise(resolve => {
+        reader.onload = (e) => {
+          const text = e.target.result;
+          if (file.name.endsWith('.json')) {
+            try {
+              const data = JSON.parse(text);
+              if (Array.isArray(data)) {
+                data.forEach(n => {
+                  if (n.id && (n.title !== undefined || n.content !== undefined)) {
+                    // Avoid duplicates by id
+                    if (!notes.find(existing => existing.id === n.id)) {
+                      notes.push({
+                        ...createNote(),
+                        ...n,
+                        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6)
+                      });
+                      imported++;
+                    }
+                  }
+                });
+              }
+            } catch { /* skip invalid json */ }
+          } else {
+            // .md or .txt
+            const note = createNote();
+            note.title = file.name.replace(/\.(md|txt|markdown)$/, '');
+            note.content = text;
+            // Parse frontmatter tags
+            const tagMatch = text.match(/tags:\s*\[([^\]]*)\]/);
+            if (tagMatch) {
+              note.tags = tagMatch[1].split(',').map(t => t.trim()).filter(Boolean);
+              note.content = text.replace(/^---[\s\S]*?---\n*/, '');
+            }
+            notes.push(note);
+            imported++;
+          }
+          resolve();
+        };
+        reader.readAsText(file);
+      }));
+    });
+
+    Promise.all(readers).then(() => {
+      saveNotes(notes);
+      renderNoteList();
+      showToast(`已导入 ${imported} 篇笔记`);
+    });
+  }
+
+  // ═══════════ TOOLBAR ACTIONS ═══════════
+  function insertMarkdown(action) {
+    const ta = editorTextarea;
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const text = ta.value;
+    const selected = text.slice(start, end);
+    let before = '', after = '', insert = '';
+
+    switch(action) {
+      case 'bold':
+        before = '**'; after = '**'; insert = selected || '粗体文字'; break;
+      case 'italic':
+        before = '*'; after = '*'; insert = selected || '斜体文字'; break;
+      case 'strikethrough':
+        before = '~~'; after = '~~'; insert = selected || '删除线文字'; break;
+      case 'heading':
+        before = '## '; insert = selected || '标题'; break;
+      case 'quote':
+        before = '> '; insert = selected || '引用文字'; break;
+      case 'code':
+        if (selected.includes('\n')) {
+          before = '```\n'; after = '\n```'; insert = selected;
+        } else {
+          before = '`'; after = '`'; insert = selected || '代码';
+        }
+        break;
+      case 'ul':
+        before = '- '; insert = selected || '列表项'; break;
+      case 'ol':
+        before = '1. '; insert = selected || '列表项'; break;
+      case 'checklist':
+        before = '- [ ] '; insert = selected || '待办事项'; break;
+      case 'link':
+        before = '['; after = '](url)'; insert = selected || '链接文字'; break;
+      case 'hr':
+        before = '\n---\n'; insert = ''; break;
+    }
+
+    const newText = text.slice(0, start) + before + insert + after + text.slice(end);
+    ta.value = newText;
+    ta.selectionStart = start + before.length;
+    ta.selectionEnd = start + before.length + insert.length;
+    ta.focus();
+    ta.dispatchEvent(new Event('input'));
+  }
+
+  // ═══════════ UTILS ═══════════
+  function escapeHtml(s) {
+    if (!s) return '';
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    $('#toastContainer').appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+
+  // ═══════════ EVENT HANDLERS ═══════════
+
+  // Note list clicks
+  noteList.addEventListener('click', (e) => {
+    const item = e.target.closest('.note-item');
+    if (item) selectNote(item.dataset.id);
+  });
+
+  // Context menu on right-click
+  noteList.addEventListener('contextmenu', (e) => {
+    const item = e.target.closest('.note-item');
+    if (!item) return;
+    e.preventDefault();
+    contextNoteId = item.dataset.id;
+    const note = notes.find(n => n.id === contextNoteId);
+    $('#pinText').textContent = note?.pinned ? '取消置顶' : '置顶';
+    contextMenu.style.left = Math.min(e.clientX, window.innerWidth - 180) + 'px';
+    contextMenu.style.top = Math.min(e.clientY, window.innerHeight - 200) + 'px';
+    contextMenu.classList.add('show');
+  });
+
+  document.addEventListener('click', () => contextMenu.classList.remove('show'));
+  document.addEventListener('contextmenu', (e) => {
+    if (!e.target.closest('.note-list')) contextMenu.classList.remove('show');
+  });
+
+  contextMenu.addEventListener('click', (e) => {
+    const item = e.target.closest('.context-menu-item');
+    if (!item || !contextNoteId) return;
+    const action = item.dataset.action;
+    if (action === 'duplicate') duplicateNote(contextNoteId);
+    else if (action === 'pin') togglePin(contextNoteId);
+    else if (action === 'exportOne') exportNoteAsMd(contextNoteId);
+    else if (action === 'delete') requestDelete(contextNoteId);
+    contextMenu.classList.remove('show');
+  });
+
+  // New note
+  newNoteBtn.addEventListener('click', createNewNote);
+
+  // Search
+  searchInput.addEventListener('input', (e) => {
+    searchQuery = e.target.value;
+    renderNoteList();
+  });
+
+  // Tag filter
+  tagFilterBar.addEventListener('click', (e) => {
+    const btn = e.target.closest('.tag-filter');
+    if (!btn) return;
+    const tag = btn.dataset.tag;
+    activeTagFilter = activeTagFilter === tag ? null : tag;
+    renderNoteList();
+  });
+
+  // Title input
+  noteTitleInput.addEventListener('input', (e) => {
+    updateActiveNote('title', e.target.value);
+  });
+
+  // Content textarea
+  let saveTimer;
+  editorTextarea.addEventListener('input', () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      updateActiveNote('content', editorTextarea.value);
+      updatePreview();
+    }, 150);
+    updateWordCount();
+  });
+
+  // Tab key support
+  editorTextarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const start = editorTextarea.selectionStart;
+      const end = editorTextarea.selectionEnd;
+      editorTextarea.value = editorTextarea.value.slice(0, start) + '  ' + editorTextarea.value.slice(end);
+      editorTextarea.selectionStart = editorTextarea.selectionEnd = start + 2;
+      editorTextarea.dispatchEvent(new Event('input'));
+    }
+  });
+
+  // Add tag
+  addTagBtn.addEventListener('click', () => {
+    const existing = metaTagList.querySelector('.tag-input');
+    if (existing) { existing.focus(); return; }
+    addTagBtn.style.display = 'none';
+    const input = document.createElement('input');
+    input.className = 'tag-input';
+    input.placeholder = '标签名';
+    metaTagList.appendChild(input);
+    input.focus();
+
+    const finish = () => {
+      if (input.value.trim()) addTagToNote(input.value);
+      input.remove();
+      addTagBtn.style.display = '';
+    };
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') finish();
+      if (e.key === 'Escape') { input.remove(); addTagBtn.style.display = ''; }
+    });
+    input.addEventListener('blur', finish);
+  });
+
+  // Remove tag
+  metaTagList.addEventListener('click', (e) => {
+    const rm = e.target.closest('.remove-tag');
+    if (rm) removeTagFromNote(rm.dataset.tag);
+  });
+
+  // View toggle
+  $$('.view-toggle-btn').forEach(btn => {
+    btn.addEventListener('click', () => setView(btn.dataset.view));
+  });
+
+  // Toolbar
+  $$('.toolbar-btn[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => insertMarkdown(btn.dataset.action));
+  });
+
+  // Theme
+  themeToggle.addEventListener('click', toggleTheme);
+
+  // Import/Export
+  importBtn.addEventListener('click', () => importInput.click());
+  importInput.addEventListener('change', (e) => {
+    if (e.target.files.length) importNotes(e.target.files);
+    e.target.value = '';
+  });
+  exportBtn.addEventListener('click', exportAll);
+
+  // Delete modal
+  $('#cancelDelete').addEventListener('click', () => {
+    deleteTargetId = null;
+    deleteModal.classList.remove('show');
+  });
+  $('#confirmDelete').addEventListener('click', confirmDeleteAction);
+  deleteModal.addEventListener('click', (e) => {
+    if (e.target === deleteModal) {
+      deleteTargetId = null;
+      deleteModal.classList.remove('show');
+    }
+  });
+
+  // Mobile menu
+  mobileMenuBtn.addEventListener('click', () => sidebar.classList.toggle('open'));
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key === 'n') { e.preventDefault(); createNewNote(); }
+    if (mod && e.key === 'b' && document.activeElement === editorTextarea) { e.preventDefault(); insertMarkdown('bold'); }
+    if (mod && e.key === 'i' && document.activeElement === editorTextarea) { e.preventDefault(); insertMarkdown('italic'); }
+    if (mod && e.key === 'k' && document.activeElement === editorTextarea) { e.preventDefault(); insertMarkdown('link'); }
+    if (mod && e.key === '/') { e.preventDefault(); searchInput.focus(); }
+  });
+
+  // Click outside to close sidebar on mobile
+  document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+      sidebar.classList.remove('open');
+    }
+  });
+
+  // ═══════════ INIT ═══════════
+  initTheme();
+
+  // Welcome note if first time
+  if (notes.length === 0) {
+    const welcome = createNote();
+    welcome.title = '欢迎使用墨迹';
+    welcome.content = `# 欢迎使用墨迹 ✍️
+
+一款简洁优雅的本地笔记工具，数据完全保存在浏览器本地。
+
+## 快速开始
+
+- 点击 **新建笔记** 或按 \`Ctrl+N\` 创建笔记
+- 支持完整的 **Markdown** 语法
+- 右键笔记列表项可以 **复制、置顶、导出、删除**
+- 使用 **标签** 来组织你的笔记
+
+## 功能特色
+
+### 📝 Markdown 编辑
+支持标题、粗体、斜体、列表、代码块、引用、表格等全部常用语法。
+
+### 🏷️ 标签系统
+为笔记添加标签，通过标签快速筛选。
+
+### 🔍 全文搜索
+按 \`Ctrl+/\` 快速聚焦搜索框，支持搜索标题、内容和标签。
+
+### 💾 数据管理
+- 所有数据保存在浏览器 \`localStorage\` 中
+- 支持导出为 JSON（全部）或 Markdown（单篇）
+- 支持导入 JSON、Markdown、纯文本文件
+
+### 🌗 明暗主题
+点击左下角的主题按钮切换明暗模式。
+
+### ⌨️ 快捷键
+| 快捷键 | 功能 |
+|--------|------|
+| \`Ctrl+N\` | 新建笔记 |
+| \`Ctrl+B\` | 粗体 |
+| \`Ctrl+I\` | 斜体 |
+| \`Ctrl+K\` | 插入链接 |
+| \`Ctrl+/\` | 搜索 |
+
+---
+
+> 开始记录你的想法吧！`;
+    welcome.tags = ['教程', '入门'];
+    notes.push(welcome);
+    saveNotes(notes);
+  }
+
+  renderNoteList();
+  if (notes.length > 0) selectNote(notes[0].id);
+})();
+</script>
+</body>
+</html>
